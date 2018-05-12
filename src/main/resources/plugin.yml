@@ -1,0 +1,8 @@
+name: BoosterPlugin
+version: ${project.version}
+main: io.github.jordieh.boosters.BoosterPlugin
+depend: [Vault]
+
+commands:
+  test:
+    usage: /<command>
