@@ -1,0 +1,6 @@
+database:
+  username: admin
+  password: admin
+  database: boosters
+  hostname: localhost:3306
+  max-pool-size: 10

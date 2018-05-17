@@ -11,22 +11,31 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
-public final class PlayerLoader {
+public final class BoosterLoader {
 
+    /**
+     * Retrieves a booster from the database
+     * @param uuid The UUID of the booster
+     * @return Booster from the database with the specified UUID
+     * @deprecated Accessing a database synchronised can freeze the server
+     */
     @Deprecated
     private Booster loadBoosterSync(UUID uuid) {
         String s = uuid.toString();
         try (Connection connection = DatabaseModule.getInstance().getDatabase().getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM `boosters` WHERE `uuid`=?")) {
+             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM boosters WHERE uuid=?")) {
             preparedStatement.setString(1, s);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                return resultSet.next() ? Booster.of(null)
+                if (resultSet.next()) {
+                    return new Booster(UUID.fromString(resultSet.getString("uuid")),
+                            resultSet.getInt("percentage"),
+                            resultSet.getLong("duration"));
+                }
             }
-            return null; // TODO
         } catch (SQLException e) {
-            log.warn("Error occured while loading player {}", s, e);
-            return null;
+            log.warn("Error occurred while loading booster {}", s, e);
         }
+        return null;
     }
 
     @SuppressWarnings("deprecation")

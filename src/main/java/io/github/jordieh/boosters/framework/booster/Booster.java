@@ -1,46 +1,30 @@
 package io.github.jordieh.boosters.framework.booster;
 
-import io.github.jordieh.boosters.BoosterPlugin;
 import io.github.jordieh.boosters.common.BoosterSet;
-import io.github.jordieh.boosters.common.GameUtil;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
 
+@Slf4j
 public final class Booster {
 
     private static final BoosterSet cache = new BoosterSet();
 
-    private final ItemStack stack;
-    private final int percentage;
-    private final long duration;
-    private final String name;
-    private final UUID owner;
-    private final UUID uuid;
+    @Getter private final int percentage;
+    @Getter private final long duration;
+    @Getter private final UUID owner;
+    @Getter private final UUID uuid;
 
     private boolean finished;
-    private boolean active;
+    @Getter private boolean active;
     private long start;
 
-    private Booster(UUID owner, ItemStack stack, int percentage, int duration, String name) {
+    public Booster(UUID owner, int percentage, long duration) {
         this.owner = owner;
-        this.stack = stack;
         this.percentage = percentage;
         this.duration = duration;
-        this.name = name;
         this.uuid = UUID.randomUUID(); // Unique id for the booster
-        BoosterPlugin.getInstance().getLogger().info("$ Booster " + uuid + " (duration: " + duration + ")");
-    }
-
-    public static Booster of(Player player, int percentage, int duration, String name) {
-        ItemStack stack = GameUtil.skull(player.getName());
-        ItemMeta meta = stack.getItemMeta();
-        meta.setDisplayName(name);
-        stack.setItemMeta(meta);
-        stack.setAmount(percentage);
-        return new Booster(player.getUniqueId(), stack, percentage, duration, name);
     }
 
     public boolean activate() {
@@ -48,7 +32,7 @@ public final class Booster {
             throw new IllegalArgumentException("Booster " + uuid + " is already active");
         }
 
-        BoosterPlugin.getInstance().getLogger().info("+ Booster " + uuid);
+        log.info("Activated the booster " + uuid + " (" + percentage + "%) - (" + duration + "ms)");
 
         active = true;
         start = System.currentTimeMillis();
@@ -60,7 +44,7 @@ public final class Booster {
             throw new IllegalArgumentException("Booster " + uuid + " is already inactive");
         }
 
-        BoosterPlugin.getInstance().getLogger().info("- Booster " + uuid);
+        log.info("Deactivated booster " + uuid);
 
         finished = true;
         active = false;
@@ -73,7 +57,7 @@ public final class Booster {
 
     @Override
     public int hashCode() {
-        return (int) (uuid.hashCode() ^ (duration >>> 16));
+        return uuid.hashCode() ^ (percentage << 16);
     }
 
     @Override

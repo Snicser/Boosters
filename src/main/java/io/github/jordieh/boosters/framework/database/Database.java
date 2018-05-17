@@ -15,10 +15,10 @@ public class Database {
         this.dataSource = new HikariDataSource();
         this.dataSource.setJdbcUrl("jdbc:mysql://" + host + "/" + database);
         this.dataSource.addDataSourceProperty("maximumPoolSize", size);
-//        this.dataSource.setUsername(username);
-//        this.dataSource.setPassword(password);
-        this.dataSource.addDataSourceProperty("username", username);
-        this.dataSource.addDataSourceProperty("password", password);
+        this.dataSource.setUsername(username);
+        this.dataSource.setPassword(password);
+//        this.dataSource.addDataSourceProperty("username", username);
+//        this.dataSource.addDataSourceProperty("password", password);
     }
 
     public Connection getConnection() throws SQLException {
