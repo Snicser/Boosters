@@ -4,3 +4,7 @@ database:
   database: boosters
   hostname: localhost:3306
   max-pool-size: 10
+
+standard-income: 1000
+maximal-percentage: 500
+income-cycle-minutes: 10

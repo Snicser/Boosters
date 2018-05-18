@@ -1,6 +1,5 @@
 package io.github.jordieh.boosters.framework.booster;
 
-import io.github.jordieh.boosters.common.BoosterSet;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -8,8 +7,6 @@ import java.util.UUID;
 
 @Slf4j
 public final class Booster {
-
-    private static final BoosterSet cache = new BoosterSet();
 
     @Getter private final int percentage;
     @Getter private final long duration;
@@ -27,6 +24,13 @@ public final class Booster {
         this.uuid = UUID.randomUUID(); // Unique id for the booster
     }
 
+    public Booster(UUID owner, UUID uuid, int percentage, long duration) {
+        this.owner = owner;
+        this.percentage = percentage;
+        this.duration = duration;
+        this.uuid = (uuid == null) ? UUID.randomUUID() : uuid; // Unique id for the booster
+    }
+
     public boolean activate() {
         if (active || finished) {
             throw new IllegalArgumentException("Booster " + uuid + " is already active");
@@ -36,7 +40,7 @@ public final class Booster {
 
         active = true;
         start = System.currentTimeMillis();
-        return cache.add(this);
+        return true;
     }
 
     public boolean deactivate() {
@@ -48,7 +52,7 @@ public final class Booster {
 
         finished = true;
         active = false;
-        return cache.remove(this);
+        return true;
     }
 
     public long getRemainingTime() {

@@ -18,37 +18,42 @@ import java.util.UUID;
 
 public class BoosterModule {
 
-    private static final int MAX_PERCENTAGE = 100;
+    private static final int MAX_PERCENTAGE = BoosterPlugin.getInstance().getConfig().getInt("maximal-percentage");
     private static BoosterModule instance;
 
-    private BossBar bossBar;
-    private Map<UUID, BoosterSet> map;
-    private BoosterSet active;
+    private final BossBar bossBar;
+    private final Map<UUID, BoosterSet> map;
+    private final BoosterSet active;
+    private final BoosterLoader loader;
 
     private BoosterModule() {
-        active = new BoosterSet();
-        bossBar = Bukkit.createBossBar("...", BarColor.BLUE, BarStyle.SOLID);
-        map = new HashMap<>();
+        this.active = new BoosterSet();
+        this.bossBar = Bukkit.createBossBar("...", BarColor.BLUE, BarStyle.SOLID);
+        this.map = new HashMap<>();
+        this.loader = new BoosterLoader();
 
-        try (Connection connection = DatabaseModule.getInstance().getDatabase().getConnection()) {
-            Statement statement = connection.createStatement();
-            statement.execute("CREATE TABLE IF NOT EXISTS boosters (\n" +
-                    "  id int(11) NOT NULL AUTO_INCREMENT,\n" +
-                    "  uuid varchar(36) NOT NULL,\n" +
-                    "  owner varchar(36) NOT NULL,\n" +
-                    "  duration bigint(20) NOT NULL,\n" +
-                    "  percentage int(11) NOT NULL,\n" +
-                    "  remaining bigint(20) NOT NULL,\n" +
-                    "  PRIMARY KEY (id)\n" +
-                    ") ENGINE = INNODB;");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        Bukkit.getScheduler().runTaskAsynchronously(BoosterPlugin.getInstance(), () -> { // FIXME - ???
+            try (Connection connection = DatabaseModule.getInstance().getDatabase().getConnection()) {
+                Statement statement = connection.createStatement();
+                statement.execute("CREATE TABLE IF NOT EXISTS boosters (\n" +
+                        "  id int(11) NOT NULL AUTO_INCREMENT,\n" +
+                        "  uuid varchar(36) NOT NULL,\n" +
+                        "  owner varchar(36) NOT NULL,\n" +
+                        "  duration bigint(20) NOT NULL,\n" +
+                        "  percentage int(11) NOT NULL,\n" +
+                        "  remaining bigint(20) NOT NULL,\n" +
+                        "  PRIMARY KEY (id)\n" +
+                        ") ENGINE = INNODB;");
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(BoosterPlugin.getInstance(), () -> {
             active.clean();
             bossBar.setTitle("Booster % " + active.totalPercentage());
         }, 0L, 20L);
+
     }
 
     public static BoosterModule getInstance() {

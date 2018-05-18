@@ -4,5 +4,7 @@ main: io.github.jordieh.boosters.BoosterPlugin
 depend: [Vault]
 
 commands:
-  test:
+  booster:
+    usage: /<command> <player> <percentage> <duration> [amount]
+  boosters:
     usage: /<command>

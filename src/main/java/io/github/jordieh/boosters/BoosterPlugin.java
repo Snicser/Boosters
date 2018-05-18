@@ -3,6 +3,8 @@ package io.github.jordieh.boosters;
 import io.github.jordieh.boosters.framework.booster.Booster;
 import io.github.jordieh.boosters.framework.booster.BoosterHolder;
 import io.github.jordieh.boosters.modules.BoosterModule;
+import io.github.jordieh.boosters.modules.IncomeRunnable;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.command.Command;
@@ -11,16 +13,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.concurrent.TimeUnit;
+
 @Slf4j
 public final class BoosterPlugin extends JavaPlugin {
 
-    private static BoosterPlugin instance;
+    @Getter private static BoosterPlugin instance;
 
-    private Economy economy;
-
-    public static BoosterPlugin getInstance() {
-        return instance;
-    }
+    @Getter private Economy economy;
 
     @Override
     public void onEnable() {
@@ -35,6 +35,12 @@ public final class BoosterPlugin extends JavaPlugin {
         saveConfig();
 
         BoosterModule.getInstance();
+
+        double income = getConfig().getDouble("standard-income");
+        long delay = getConfig().getLong("income-cycle-minutes");
+        delay = TimeUnit.MINUTES.toSeconds(delay) * 20L; // 1 second = 20 Minecraft ticks
+
+        getServer().getScheduler().runTaskTimer(this, new IncomeRunnable(income), delay, delay);
     }
 
     @Override
@@ -49,9 +55,10 @@ public final class BoosterPlugin extends JavaPlugin {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        BoosterModule.getInstance().activate(new Booster(((Player) sender).getUniqueId(), 50, 60000 ));
+        BoosterModule.getInstance().activate(new Booster(((Player) sender).getUniqueId(), 50, 60000));
         ((Player) sender).openInventory(new BoosterHolder(((Player) sender).getPlayer()).getInventory());
         BoosterModule.getInstance().getBossBar().addPlayer(((Player) sender).getPlayer());
         return super.onCommand(sender, command, label, args);
     }
+
 }

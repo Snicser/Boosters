@@ -1,7 +1,6 @@
 package io.github.jordieh.boosters.common;
 
 import org.bukkit.Material;
-import org.bukkit.SkullType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
