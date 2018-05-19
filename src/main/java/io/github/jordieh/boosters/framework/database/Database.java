@@ -14,7 +14,8 @@ public class Database {
 
         this.dataSource = new HikariDataSource();
         this.dataSource.setJdbcUrl("jdbc:mysql://" + host + "/" + database);
-        this.dataSource.addDataSourceProperty("maximumPoolSize", size);
+//        this.dataSource.addDataSourceProperty("maximumPoolSize", size);
+        this.dataSource.setMaximumPoolSize(size);
         this.dataSource.setUsername(username);
         this.dataSource.setPassword(password);
 //        this.dataSource.addDataSourceProperty("username", username);

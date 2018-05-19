@@ -1,7 +1,9 @@
 package io.github.jordieh.boosters.framework.booster;
 
+import io.github.jordieh.boosters.BoosterPlugin;
 import io.github.jordieh.boosters.common.GameUtil;
 import org.bukkit.Material;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -43,19 +45,32 @@ public class BoosterHolderListener implements Listener {
         event.setCancelled(true);
 
         BoosterHolder holder = (BoosterHolder) inventory.getHolder();
+        HumanEntity entity = event.getWhoClicked();
 
         if (PREVIOUS_ARROW.isSimilar(stack)) {
-            holder.previousPage();
+            BoosterPlugin.getInstance().getServer().getScheduler().runTask(BoosterPlugin.getInstance(), () -> {
+                entity.closeInventory();
+                holder.previousPage();
+                entity.openInventory(holder.getInventory());
+            });
             return;
         }
 
         if (PLAYER_BOOSTERS.isSimilar(stack)) {
-            // TODO Player boosters
+            BoosterPlugin.getInstance().getServer().getScheduler().runTask(BoosterPlugin.getInstance(), () -> {
+                entity.closeInventory();
+                holder.resetPage();
+                entity.openInventory(holder.getBoosterInventory());
+            });
             return;
         }
 
         if (NEXT_ARROW.isSimilar(stack)) {
-            holder.nextPage();
+            BoosterPlugin.getInstance().getServer().getScheduler().runTask(BoosterPlugin.getInstance(), () -> {
+                entity.closeInventory();
+                holder.nextPage();
+                entity.openInventory(holder.getInventory());
+            });
             return;  //fixme, necessary?
         }
 

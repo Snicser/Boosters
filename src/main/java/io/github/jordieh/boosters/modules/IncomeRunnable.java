@@ -27,7 +27,7 @@ public class IncomeRunnable implements Runnable {
 
     private double amount() {
         int i = BoosterModule.getInstance().getActiveBoosters().totalPercentage();
-        i = (i < 100) ? 100 : i; // If the percentage is lower than 100% the balance of the player will reduce
+        i = (i < 100) ? 100 : i; // If the percentage is lower than 100%, the balance of the player will reduce
         return (i / 100) * incomeAmount;
     }
 

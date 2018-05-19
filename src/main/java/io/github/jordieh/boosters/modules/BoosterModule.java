@@ -12,8 +12,6 @@ import org.bukkit.entity.Player;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 public class BoosterModule {
@@ -22,36 +20,45 @@ public class BoosterModule {
     private static BoosterModule instance;
 
     private final BossBar bossBar;
-    private final Map<UUID, BoosterSet> map;
     private final BoosterSet active;
     private final BoosterLoader loader;
 
     private BoosterModule() {
         this.active = new BoosterSet();
         this.bossBar = Bukkit.createBossBar("...", BarColor.BLUE, BarStyle.SOLID);
-        this.map = new HashMap<>();
         this.loader = new BoosterLoader();
 
-        Bukkit.getScheduler().runTaskAsynchronously(BoosterPlugin.getInstance(), () -> { // FIXME - ???
-            try (Connection connection = DatabaseModule.getInstance().getDatabase().getConnection()) {
-                Statement statement = connection.createStatement();
+        Bukkit.getScheduler().runTaskAsynchronously(BoosterPlugin.getInstance(), () -> { // TODO - ???
+            try (Connection connection = DatabaseModule.getInstance().getDatabase().getConnection();
+                 Statement statement = connection.createStatement()) {
+
                 statement.execute("CREATE TABLE IF NOT EXISTS boosters (\n" +
                         "  id int(11) NOT NULL AUTO_INCREMENT,\n" +
                         "  uuid varchar(36) NOT NULL,\n" +
                         "  owner varchar(36) NOT NULL,\n" +
                         "  duration bigint(20) NOT NULL,\n" +
                         "  percentage int(11) NOT NULL,\n" +
-                        "  remaining bigint(20) NOT NULL,\n" +
+                        "  consumed tinyint(1) NOT NULL,\n" +
                         "  PRIMARY KEY (id)\n" +
-                        ") ENGINE = INNODB;");
+                        ") ENGINE = INNODB;"
+                );
+
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         });
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(BoosterPlugin.getInstance(), () -> {
+        Bukkit.getScheduler().runTaskTimer(BoosterPlugin.getInstance(), () -> {
             active.clean();
-            bossBar.setTitle("Booster % " + active.totalPercentage());
+
+            int percentage = active.totalPercentage();
+            if (percentage <= 0) {
+                bossBar.setVisible(false);
+            } else {
+                bossBar.setVisible(true);
+                bossBar.setTitle("Booster % " + percentage);
+            }
+
         }, 0L, 20L);
 
     }
@@ -65,11 +72,13 @@ public class BoosterModule {
     }
 
     public BoosterSet getBoosters(UUID uuid) {
-        if (!map.containsKey(uuid)) {
-            map.put(uuid, new BoosterSet());
+        BoosterSet boosters = new BoosterSet();
+        for (Booster booster : active) {
+            if (booster.getOwner().equals(uuid)) {
+                boosters.add(booster);
+            }
         }
-
-        return map.get(uuid);
+        return boosters;
     }
 
     public BoosterSet getBoosters(Player player) {
@@ -80,6 +89,10 @@ public class BoosterModule {
         return active; // TODO Wrapper?
     }
 
+    public boolean submit(Booster booster) {
+        throw new UnsupportedOperationException("Implementation");
+    }
+
     public boolean activate(Booster booster) {
         if ((active.totalPercentage() + booster.getPercentage()) > MAX_PERCENTAGE) {
             return false;
@@ -87,9 +100,6 @@ public class BoosterModule {
 
         if (active.add(booster)) {
             booster.activate();
-
-            UUID owner = booster.getOwner();
-            map.put(owner, getBoosters(owner));
             return true;
         }
 

@@ -35,6 +35,10 @@ public class BoosterHolder implements InventoryHolder {
         return inventories.get(page);
     }
 
+    public Inventory getBoosterInventory() {
+        return playerBoosters.get(page);
+    }
+
     private List<Inventory> fillInventories(BoosterSet set) {
         List<Inventory> inventories = new ArrayList<>();
         List<Booster> boosters = set.sorted();
@@ -78,11 +82,11 @@ public class BoosterHolder implements InventoryHolder {
             }
 
             if (x != 0) {
-                current.setItem(45, BoosterHolderListener.getPreviousArrow());
+                current.setItem(46, BoosterHolderListener.getPreviousArrow());
             }
 
             if (x < (inventories.size() - 1)) {
-                current.setItem(53, BoosterHolderListener.getNextArrow());
+                current.setItem(52, BoosterHolderListener.getNextArrow());
             }
         }
 
@@ -95,6 +99,10 @@ public class BoosterHolder implements InventoryHolder {
 
     public void previousPage() {
         page = Math.min(page - 1, 0);
+    } // fixme
+
+    public void resetPage() {
+        page = 0;
     }
 
 }

@@ -1,11 +1,10 @@
 package io.github.jordieh.boosters.framework.booster;
 
+import io.github.jordieh.boosters.common.Logger;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
 
-@Slf4j
 public final class Booster {
 
     @Getter private final int percentage;
@@ -36,7 +35,7 @@ public final class Booster {
             throw new IllegalArgumentException("Booster " + uuid + " is already active");
         }
 
-        log.info("Activated the booster " + uuid + " (" + percentage + "%) - (" + duration + "ms)");
+        Logger.info("Activated the booster " + uuid + " (" + percentage + "%) - (" + duration + "ms)");
 
         active = true;
         start = System.currentTimeMillis();
@@ -48,11 +47,19 @@ public final class Booster {
             throw new IllegalArgumentException("Booster " + uuid + " is already inactive");
         }
 
-        log.info("Deactivated booster " + uuid);
+        Logger.info("Deactivated booster " + uuid);
 
         finished = true;
         active = false;
         return true;
+    }
+
+    /**
+     * For database use
+     * @return true if the booster has been activated
+     */
+    public boolean isActivated() {
+        return finished || active || (getRemainingTime() < 0);
     }
 
     public long getRemainingTime() {
