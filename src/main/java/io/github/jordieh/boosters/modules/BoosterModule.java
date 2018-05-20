@@ -3,6 +3,7 @@ package io.github.jordieh.boosters.modules;
 import io.github.jordieh.boosters.BoosterPlugin;
 import io.github.jordieh.boosters.common.BoosterSet;
 import io.github.jordieh.boosters.framework.booster.Booster;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -19,9 +20,9 @@ public class BoosterModule {
     private static final int MAX_PERCENTAGE = BoosterPlugin.getInstance().getConfig().getInt("maximal-percentage");
     private static BoosterModule instance;
 
-    private final BossBar bossBar;
+    @Getter private final BossBar bossBar;
     private final BoosterSet active;
-    private final BoosterLoader loader;
+    @Getter private final BoosterLoader loader;
 
     private BoosterModule() {
         this.active = new BoosterSet();
@@ -67,18 +68,23 @@ public class BoosterModule {
         return instance == null ? instance = new BoosterModule() : instance;
     }
 
-    public BossBar getBossBar() {
-        return bossBar;
-    }
-
     public BoosterSet getBoosters(UUID uuid) {
         BoosterSet boosters = new BoosterSet();
-        for (Booster booster : active) {
-            if (booster.getOwner().equals(uuid)) {
+        for (Booster booster : Booster.getCache()) {
+            if (!booster.isActivated() && booster.getOwner().equals(uuid)) {
                 boosters.add(booster);
             }
         }
         return boosters;
+    }
+
+    public Booster getBooster(UUID uuid) {
+        for (Booster booster : Booster.getCache()) {
+            if (booster.getUuid().equals(uuid)) {
+                return booster;
+            }
+        }
+        return null;
     }
 
     public BoosterSet getBoosters(Player player) {
@@ -87,10 +93,6 @@ public class BoosterModule {
 
     public BoosterSet getActiveBoosters() {
         return active; // TODO Wrapper?
-    }
-
-    public boolean submit(Booster booster) {
-        throw new UnsupportedOperationException("Implementation");
     }
 
     public boolean activate(Booster booster) {

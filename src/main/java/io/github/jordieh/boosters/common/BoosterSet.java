@@ -24,6 +24,16 @@ public final class BoosterSet extends HashSet<Booster> {
         }
     }
 
+    public BoosterSet getActive() {
+        BoosterSet boosters = new BoosterSet();
+        for (Booster booster : this) {
+            if (booster.activate()) {
+                boosters.add(booster);
+            }
+        }
+        return boosters;
+    }
+
     public int totalPercentage() {
         int sum = 0;
         for (Booster booster : this) {

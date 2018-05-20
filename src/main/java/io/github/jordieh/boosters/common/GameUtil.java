@@ -1,7 +1,9 @@
 package io.github.jordieh.boosters.common;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.text.DecimalFormat;
@@ -16,6 +18,14 @@ public final class GameUtil {
 
     public static ItemStack item(Material material) {
         return new ItemStack(material);
+    }
+
+    public static ItemStack item(Material material, String s) {
+        ItemStack stack = new ItemStack(material);
+        ItemMeta meta = stack.getItemMeta();
+        meta.setDisplayName(s == null ? ChatColor.RESET.toString() : s);
+        stack.setItemMeta(meta);
+        return stack;
     }
 
     public static ItemStack skull(String owner, String name, String lore) {

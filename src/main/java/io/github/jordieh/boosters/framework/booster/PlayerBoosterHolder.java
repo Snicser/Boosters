@@ -7,41 +7,59 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
-public class BoosterHolder implements InventoryHolder {
+public class PlayerBoosterHolder implements InventoryHolder {
 
     private static final int BOOSTERS_PER_PAGE = 45;
-    private static final ItemStack NO_BOOSTERS = GameUtil.item(Material.RED_ROSE, "No active boosters");
 
-    private PlayerBoosterHolder playerBoosters;
     private final List<Inventory> inventories;
-    @Getter private final HumanEntity humanEntity;
+    @Getter private final BoosterHolder parent;
 
     private int page;
 
-    public BoosterHolder(HumanEntity humanEntity) {
+    public PlayerBoosterHolder(BoosterHolder parent) {
+        this.parent = parent;
         this.inventories = new ArrayList<>();
-        this.humanEntity = humanEntity;
 
-        List<Booster> boosters = BoosterModule.getInstance().getActiveBoosters().sorted();
+        updateBoosters();
+    }
+
+    @Override
+    public Inventory getInventory() {
+        return inventories.get(page);
+    }
+
+    public boolean isPresent() {
+        return !inventories.isEmpty();
+    }
+
+    public void nextPage() {
+        page = Math.min(page + 1, inventories.size());
+    }
+
+    public void previousPage() {
+        page = Math.max(page - 1, 0);
+    }
+
+    public void updateBoosters() {
+        inventories.clear();
+        List<Booster> boosters = BoosterModule.getInstance().getBoosters(parent.getHumanEntity().getUniqueId()).sorted();
         Inventory inventory = null;
 
         int i = 0;
         for (Iterator<Booster> iterator = boosters.iterator(); iterator.hasNext(); i++) { // todo Forloop? lol
             if (i % BOOSTERS_PER_PAGE == 0) {
-                inventory = Bukkit.createInventory(this, 54, "Activated boosters");
+                inventory = Bukkit.createInventory(this, 54, "Boosters of " + parent.getHumanEntity().getName());
                 inventories.add(inventory);
                 i = 0;
             }
@@ -52,19 +70,14 @@ public class BoosterHolder implements InventoryHolder {
             ItemMeta meta = stack.getItemMeta();
             meta.setDisplayName(ChatColor.GREEN.toString() + booster.getPercentage() + "% Booster");
 
-            List<String> list = new ArrayList<>(1);
-            list.add(ChatColor.GRAY + "Remaining " + GameUtil.format(booster.getRemainingTime()));
-            list.add(ChatColor.GRAY + "Owner " + Bukkit.getOfflinePlayer(booster.getOwner()).getName());
+            List<String> list = new ArrayList<>(3);
+            list.add(ChatColor.GRAY + "Duration " + GameUtil.format(booster.getDuration()));
+            list.add(ChatColor.GRAY + "Click to activate!");
+            list.add(ChatColor.GRAY + "UUID " + booster.getUuid());
             meta.setLore(list);
 
             stack.setItemMeta(meta);
             inventory.setItem(i, stack);
-        }
-
-        if (inventories.isEmpty()) {
-            inventory = Bukkit.createInventory(this, 54, "No active boosters");
-            inventory.setItem(22, NO_BOOSTERS.clone());
-            inventories.add(inventory);
         }
 
         i = 0;
@@ -74,9 +87,7 @@ public class BoosterHolder implements InventoryHolder {
                 current.setItem(x, stack);
             }
 
-            if (getPlayerBoosters().isPresent()) {
-                current.setItem(49, BoosterHolderListener.getPlayerBoosters());
-            }
+            current.setItem(49, BoosterHolderListener.getBoosterMenu());
 
             if (i != 0) {
                 current.setItem(46, BoosterHolderListener.getPreviousArrow());
@@ -87,25 +98,6 @@ public class BoosterHolder implements InventoryHolder {
             }
         }
 
-    }
-
-    public PlayerBoosterHolder getPlayerBoosters() {
-        return playerBoosters == null
-                ? playerBoosters = new PlayerBoosterHolder(this)
-                : playerBoosters;
-    }
-
-    @Override
-    public Inventory getInventory() {
-        return inventories.get(page);
-    }
-
-    public void nextPage() {
-        page = Math.min(page + 1, inventories.size());
-    }
-
-    public void previousPage() {
-        page = Math.max(page - 1, 0);
     }
 
 }

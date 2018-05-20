@@ -1,11 +1,14 @@
 package io.github.jordieh.boosters.framework.booster;
 
+import io.github.jordieh.boosters.common.BoosterSet;
 import io.github.jordieh.boosters.common.Logger;
 import lombok.Getter;
 
 import java.util.UUID;
 
 public final class Booster {
+
+    @Getter private final static BoosterSet cache = new BoosterSet(); //todo
 
     @Getter private final int percentage;
     @Getter private final long duration;
@@ -21,6 +24,8 @@ public final class Booster {
         this.percentage = percentage;
         this.duration = duration;
         this.uuid = UUID.randomUUID(); // Unique id for the booster
+        cache.add(this);
+        Logger.info("Created booster " + uuid + " with owner " + owner);
     }
 
     public Booster(UUID owner, UUID uuid, int percentage, long duration) {
@@ -28,6 +33,8 @@ public final class Booster {
         this.percentage = percentage;
         this.duration = duration;
         this.uuid = (uuid == null) ? UUID.randomUUID() : uuid; // Unique id for the booster
+        cache.add(this);
+        Logger.info("Created booster " + uuid + " with owner " + owner);
     }
 
     public boolean activate() {
@@ -56,10 +63,11 @@ public final class Booster {
 
     /**
      * For database use
+     *
      * @return true if the booster has been activated
      */
     public boolean isActivated() {
-        return finished || active || (getRemainingTime() < 0);
+        return finished || active;
     }
 
     public long getRemainingTime() {
